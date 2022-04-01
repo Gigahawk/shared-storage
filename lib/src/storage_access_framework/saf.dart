@@ -500,5 +500,9 @@ Stream<String> getDocumentContent(Uri uri) {
 
   final onNewLine = kDocumentFileEventChannel.receiveBroadcastStream(args);
 
-  return onNewLine.map<String>((line) => line as String);
+  return onNewLine.map<String>((line) {
+    print("got data from getDocumentContent");
+    print(line);
+    return line as String;
+    });
 }
