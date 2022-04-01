@@ -485,8 +485,23 @@ Future<DocumentFile?> copy(Uri uri, Uri destination) async {
   return DocumentFile.fromMap(duplicatedFile);
 }
 
+Future<Uint8List?> getDocumentContentBytes(Uri uri) async {
+  const kGetDocumentContent = 'getDocumentContentBytes';
+
+  const kUri = 'uri';
+
+  final args = <String, String>{kUri: '$uri'};
+
+  final content = await kDocumentFileChannel.invokeMethod<Uint8List?>(kGetDocumentContent, args);
+
+  if (content == null) return null;
+
+  return content;
+
+}
+
 Future<String?> getDocumentContentString(Uri uri) async {
-  const kGetDocumentContent = 'getDocumentContent';
+  const kGetDocumentContent = 'getDocumentContentString';
 
   const kUri = 'uri';
 

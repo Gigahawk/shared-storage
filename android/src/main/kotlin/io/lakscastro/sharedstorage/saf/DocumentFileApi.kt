@@ -3,6 +3,7 @@ package io.lakscastro.sharedstorage.saf
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -17,6 +18,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.BufferedReader
+import java.io.FileDescriptor
+import java.io.FileInputStream
 import java.io.InputStreamReader
 
 internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
@@ -212,13 +215,22 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
           result.success(if (parent != null) createDocumentFileMap(parent) else null)
         }
       }
-      GET_DOCUMENT_CONTENT -> {
+      GET_DOCUMENT_CONTENT_STRING -> {
         if (Build.VERSION.SDK_INT >= API_21) {
           val uriStr = call.argument<String>("uri")!!
           val uri = Uri.parse(uriStr)
           val content = readDocumentContentString(uri);
 
           result.success(if (content != null) content else null)
+        }
+      }
+      GET_DOCUMENT_CONTENT_BYTES -> {
+        if (Build.VERSION.SDK_INT >= API_21) {
+          val uriStr = call.argument<String>("uri")!!
+          val uri = Uri.parse(uriStr)
+          val content = readDocumentContentBytes(uri);
+
+          result.success(content)
         }
       }
       else -> result.notImplemented()
@@ -488,7 +500,23 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
   }
 
   @RequiresApi(API_21)
-  private fun readDocumentContentString(uri: Uri,): String {
+  private fun readDocumentContentBytes(uri: Uri): ByteArray? {
+    val pfd: ParcelFileDescriptor =
+      plugin.context.contentResolver.openFileDescriptor(uri, "r")
+          ?: return null;
+    val fileSize = pfd.statSize;
+
+    val data = ByteArray(fileSize as Int)
+
+    val fd: FileDescriptor = pfd.fileDescriptor;
+    val fileStream = FileInputStream(fd)
+    fileStream.read(data)
+
+    return data
+  }
+
+  @RequiresApi(API_21)
+  private fun readDocumentContentString(uri: Uri): String {
     val stringBuilder = StringBuilder()
     plugin.context.contentResolver.openInputStream(uri)
       ?.use { inputStream ->
