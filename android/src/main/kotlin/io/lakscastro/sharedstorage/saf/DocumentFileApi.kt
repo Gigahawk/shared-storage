@@ -212,6 +212,15 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
           result.success(if (parent != null) createDocumentFileMap(parent) else null)
         }
       }
+      GET_DOCUMENT_CONTENT -> {
+        if (Build.VERSION.SDK_INT >= API_21) {
+          val uriStr = call.argument<String>("uri")!!
+          val uri = Uri.parse(uriStr)
+          val content = readDocumentContentString(uri);
+
+          result.success(if (content != null) content else null)
+        }
+      }
       else -> result.notImplemented()
     }
   }
@@ -476,6 +485,23 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
           callbacks.onEnd?.invoke()
         }
       }
+  }
+
+  @RequiresApi(API_21)
+  private fun readDocumentContentString(uri: Uri,): String {
+    val stringBuilder = StringBuilder()
+    plugin.context.contentResolver.openInputStream(uri)
+      ?.use { inputStream ->
+        BufferedReader(InputStreamReader(inputStream)).use { reader ->
+          var line = reader.readLine()
+
+          while (line != null) {
+            stringBuilder.append(line)
+            line = reader.readLine()
+          }
+        }
+      }
+    return stringBuilder.toString()
   }
 
   override fun onCancel(arguments: Any?) {

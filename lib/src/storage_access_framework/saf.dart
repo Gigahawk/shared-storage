@@ -485,6 +485,20 @@ Future<DocumentFile?> copy(Uri uri, Uri destination) async {
   return DocumentFile.fromMap(duplicatedFile);
 }
 
+Future<String?> getDocumentContentString(Uri uri) async {
+  const kGetDocumentContent = 'getDocumentContent';
+
+  const kUri = 'uri';
+
+  final args = <String, String>{kUri: '$uri'};
+
+  final content = await kDocumentFileChannel.invokeMethod<String?>(kGetDocumentContent, args);
+
+  if (content == null) return null;
+
+  return content;
+}
+
 /// Get content of a given document `uri`
 ///
 /// Equivalent to `contentDescriptor` usage
