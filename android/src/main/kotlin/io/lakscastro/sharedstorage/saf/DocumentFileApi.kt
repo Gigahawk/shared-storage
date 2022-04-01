@@ -504,9 +504,9 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
     val pfd: ParcelFileDescriptor =
       plugin.context.contentResolver.openFileDescriptor(uri, "r")
           ?: return null;
-    val fileSize = pfd.statSize;
+    val fileSize: Long = pfd.statSize;
 
-    val data = ByteArray(fileSize as Int)
+    val data = ByteArray(fileSize.toInt())
 
     val fd: FileDescriptor = pfd.fileDescriptor;
     val fileStream = FileInputStream(fd)
